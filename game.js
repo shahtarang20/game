@@ -27,19 +27,19 @@
 
   const THEMES = [
     { name: 'Day',       sky: ['#70c5ce', '#a1e3ea'], ground: '#ded895', pipeColor: '#4CAF50', pipeShape: 'rect',   bird: '#ffeb3b', speedMul: 1.00, gapMul: 1.00 },
-    { name: 'Sunset',    sky: ['#ff7e5f', '#feb47b'], ground: '#c98b5e', pipeColor: '#e65100', pipeShape: 'rect',   bird: '#ff8a65', speedMul: 1.06, gapMul: 0.97 },
-    { name: 'Night',     sky: ['#0f2027', '#203a43'], ground: '#1a1a2e', pipeColor: '#546e7a', pipeShape: 'rect',   bird: '#fff59d', speedMul: 1.12, gapMul: 0.94 },
-    { name: 'Space',     sky: ['#000000', '#1a0033'], ground: '#2d0a4e', pipeColor: '#9c27b0', pipeShape: 'crystal',bird: '#00e5ff', speedMul: 1.18, gapMul: 0.91 },
-    { name: 'Underwater',sky: ['#01579b', '#0288d1'], ground: '#004d40', pipeColor: '#00897b', pipeShape: 'rock',   bird: '#ffca28', speedMul: 1.24, gapMul: 0.88 },
-    { name: 'Desert',    sky: ['#f2b880', '#f6d29c'], ground: '#deb887', pipeColor: '#8d6e63', pipeShape: 'rock',   bird: '#d84315', speedMul: 1.30, gapMul: 0.85 },
-    { name: 'Cyberpunk', sky: ['#0d0221', '#190a3e'], ground: '#0d0221', pipeColor: '#ff00ff', pipeShape: 'crystal',bird: '#00ff9c', speedMul: 1.36, gapMul: 0.82 },
-    { name: 'Volcano',   sky: ['#3e0000', '#7f0000'], ground: '#1a0000', pipeColor: '#ff5722', pipeShape: 'rock',   bird: '#ffab00', speedMul: 1.42, gapMul: 0.80 },
+    { name: 'Sunset',    sky: ['#ff7e5f', '#feb47b'], ground: '#c98b5e', pipeColor: '#e65100', pipeShape: 'rect',   bird: '#ff8a65', speedMul: 1.03, gapMul: 0.99 },
+    { name: 'Night',     sky: ['#0f2027', '#203a43'], ground: '#1a1a2e', pipeColor: '#546e7a', pipeShape: 'rect',   bird: '#fff59d', speedMul: 1.06, gapMul: 0.98 },
+    { name: 'Space',     sky: ['#000000', '#1a0033'], ground: '#2d0a4e', pipeColor: '#9c27b0', pipeShape: 'crystal',bird: '#00e5ff', speedMul: 1.09, gapMul: 0.97 },
+    { name: 'Underwater',sky: ['#01579b', '#0288d1'], ground: '#004d40', pipeColor: '#00897b', pipeShape: 'rock',   bird: '#ffca28', speedMul: 1.12, gapMul: 0.96 },
+    { name: 'Desert',    sky: ['#f2b880', '#f6d29c'], ground: '#deb887', pipeColor: '#8d6e63', pipeShape: 'rock',   bird: '#d84315', speedMul: 1.15, gapMul: 0.95 },
+    { name: 'Cyberpunk', sky: ['#0d0221', '#190a3e'], ground: '#0d0221', pipeColor: '#ff00ff', pipeShape: 'crystal',bird: '#00ff9c', speedMul: 1.18, gapMul: 0.94 },
+    { name: 'Volcano',   sky: ['#3e0000', '#7f0000'], ground: '#1a0000', pipeColor: '#ff5722', pipeShape: 'rock',   bird: '#ffab00', speedMul: 1.21, gapMul: 0.93 },
   ];
 
-  const GRAVITY = 0.45;
-  const FLAP_VELOCITY = -8;
-  const BASE_PIPE_SPEED = 2.6;
-  const BASE_GAP = 165;
+  const GRAVITY = 0.35;
+  const FLAP_VELOCITY = -6.8;
+  const BASE_PIPE_SPEED = 3.1;
+  const BASE_GAP = 175;
   const PIPE_WIDTH = 62;
   const PIPE_INTERVAL = 95;
   const POWERUP_TYPES = ['shield', 'slowmo', 'x2'];
@@ -110,15 +110,32 @@
   };
 
   // ---------- responsive canvas ----------
+  const gameWrap = document.getElementById('game-wrap');
+  const adTop = document.getElementById('ad-slot-top');
+  const adBottom = document.getElementById('ad-slot-bottom');
+
   function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
+
+    const wrapStyle = getComputedStyle(gameWrap);
+    const gap = parseFloat(wrapStyle.rowGap || wrapStyle.gap || '0') || 0;
+    const paddingV = parseFloat(wrapStyle.paddingTop) + parseFloat(wrapStyle.paddingBottom);
+    const paddingH = parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight);
+
+    const reservedHeight = adTop.offsetHeight + adBottom.offsetHeight + gap * 2 + paddingV;
+    const availableHeight = window.innerHeight - reservedHeight;
+    const availableWidth = window.innerWidth - paddingH;
+
+    const scale = Math.max(0.3, Math.min(availableWidth / BASE_W, availableHeight / BASE_H, 1.4));
+
+    canvas.style.width = Math.floor(BASE_W * scale) + 'px';
+    canvas.style.height = Math.floor(BASE_H * scale) + 'px';
     canvas.width = BASE_W * dpr;
     canvas.height = BASE_H * dpr;
-    canvas.style.width = BASE_W + 'px';
-    canvas.style.height = BASE_H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
 
   function currentTheme() { return THEMES[level % THEMES.length]; }
 
