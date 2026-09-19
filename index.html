@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Flappy Levels</title>
+<link rel="stylesheet" href="style.css">
+<!-- AdSense: replace ca-pub-XXXXXXXXXXXXXXXX with your publisher id -->
+<!--
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+</head>
+<body>
+  <div id="game-wrap">
+    <div id="ad-slot-top" class="ad-slot">Ad slot (top banner)</div>
+
+    <canvas id="game" width="480" height="640"></canvas>
+
+    <div id="overlay">
+      <div id="start-screen" class="screen">
+        <h1>Flappy Levels</h1>
+        <p>Tap / Click / Space to flap.</p>
+        <p>Survive and cycle through endless themed levels.</p>
+        <p>Grab <span class="coin-label">coins</span> and power-ups along the way.</p>
+        <button id="start-btn">Start</button>
+        <p class="high-score">Best: <span id="high-score-start">0</span></p>
+        <p class="coin-total">Coins: <span id="coin-total-start">0</span></p>
+        <p id="streak-banner" class="streak-banner hidden"></p>
+      </div>
+
+      <div id="gameover-screen" class="screen hidden">
+        <h1>Game Over</h1>
+        <p>Score: <span id="final-score">0</span></p>
+        <p>Level reached: <span id="final-level">1</span></p>
+        <p>Coins collected: <span id="final-coins">0</span></p>
+        <p class="high-score">Best: <span id="high-score-end">0</span></p>
+        <button id="continue-btn" class="hidden">Watch Ad to Continue</button>
+        <button id="restart-btn">Play Again</button>
+        <div id="ad-slot-interstitial" class="ad-slot">Ad slot (interstitial)</div>
+      </div>
+
+      <div id="ad-watching-screen" class="screen hidden">
+        <h1>Loading Ad&hellip;</h1>
+        <p>Please wait</p>
+      </div>
+    </div>
+
+    <div id="ad-slot-bottom" class="ad-slot">Ad slot (bottom banner)</div>
+  </div>
+
+<script src="game.js"></script>
+</body>
+</html>
