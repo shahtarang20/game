@@ -48,8 +48,17 @@
   let bird, pipes, coins, powerups, particles, stars;
   let frame, score, pipesPassed, level, gameState, groundOffset;
   let coinsThisRun, activeEffects, shieldHit, usedContinue;
-  let shakeTime, shakeMag;
+  let shakeTime, shakeMag, ballSpin;
   let dpr = 1;
+
+  function shadeColor(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const r = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00ff) + amt));
+    const b = Math.max(0, Math.min(255, (num & 0x0000ff) + amt));
+    return `rgb(${r}, ${g}, ${b})`;
+  }
 
   // ---------- persistence ----------
   function getHighScore() { return Number(localStorage.getItem(HIGH_SCORE_KEY) || 0); }
@@ -156,6 +165,7 @@
     usedContinue = false;
     shakeTime = 0;
     shakeMag = 0;
+    ballSpin = 0;
     gameState = 'ready';
   }
 
@@ -453,8 +463,9 @@
   function drawBird(theme) {
     ctx.save();
     ctx.translate(bird.x, bird.y);
-    const angle = Math.max(-0.5, Math.min(0.9, bird.vy / 10));
-    ctx.rotate(angle);
+    ballSpin += 0.15 + Math.abs(bird.vy) * 0.02;
+    ctx.rotate(ballSpin);
+
     if (shieldHit) {
       ctx.strokeStyle = '#29b6f6';
       ctx.lineWidth = 3;
@@ -462,21 +473,25 @@
       ctx.arc(0, 0, bird.r + 6, 0, Math.PI * 2);
       ctx.stroke();
     }
-    ctx.fillStyle = theme.bird;
+
+    const grad = ctx.createRadialGradient(-bird.r * 0.35, -bird.r * 0.35, 1, 0, 0, bird.r);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.35, theme.bird);
+    grad.addColorStop(1, shadeColor(theme.bird, -30));
+    ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(0, 0, bird.r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#222';
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(5, -4, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ff7043';
-    ctx.beginPath();
-    ctx.moveTo(bird.r - 2, 0);
-    ctx.lineTo(bird.r + 8, -2);
-    ctx.lineTo(bird.r - 2, 4);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(-bird.r, 0);
+    ctx.lineTo(bird.r, 0);
+    ctx.moveTo(0, -bird.r);
+    ctx.lineTo(0, bird.r);
+    ctx.stroke();
+
     ctx.restore();
   }
 
