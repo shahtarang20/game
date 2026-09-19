@@ -1,5 +1,7 @@
 * { box-sizing: border-box; }
 
+.hidden { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -115,12 +117,70 @@ canvas {
   color: #fff;
 }
 
-#continue-btn.hidden {
+#continue-btn:hover {
+  background: #039be5;
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.secondary-btn {
+  background: #7e57c2;
+  color: #fff;
+  font-size: 13px;
+  padding: 10px 16px;
+}
+
+.secondary-btn:hover {
+  background: #6a44b0;
+}
+
+.secondary-btn.hidden {
   display: none;
 }
 
-#continue-btn:hover {
-  background: #039be5;
+#skins-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.skin-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.skin-item.selected {
+  border-color: #ffd54f;
+}
+
+.skin-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), inset 4px 4px 8px rgba(255,255,255,0.3);
+}
+
+.skin-label {
+  font-size: 11px;
+  color: #ddd;
+}
+
+.skin-lock {
+  font-size: 10px;
+  color: #ffd54f;
 }
 
 button {

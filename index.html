@@ -21,6 +21,10 @@
         <p>Survive and cycle through endless themed levels.</p>
         <p>Grab <span class="coin-label">coins</span> and power-ups along the way.</p>
         <button id="start-btn">Start</button>
+        <div class="btn-row">
+          <button id="spin-btn" class="secondary-btn">Watch Ad: Daily Spin</button>
+          <button id="skins-btn" class="secondary-btn">Skins</button>
+        </div>
         <p class="high-score">Best: <span id="high-score-start">0</span></p>
         <p class="coin-total">Coins: <span id="coin-total-start">0</span></p>
         <p id="streak-banner" class="streak-banner hidden"></p>
@@ -33,6 +37,7 @@
         <p>Coins collected: <span id="final-coins">0</span></p>
         <p class="high-score">Best: <span id="high-score-end">0</span></p>
         <button id="continue-btn" class="hidden">Watch Ad to Continue</button>
+        <button id="double-coins-btn" class="secondary-btn hidden">Watch Ad to Double Coins</button>
         <button id="restart-btn">Play Again</button>
         <div id="ad-slot-interstitial" class="ad-slot">Ad slot (interstitial)</div>
       </div>
@@ -40,6 +45,18 @@
       <div id="ad-watching-screen" class="screen hidden">
         <h1>Loading Ad&hellip;</h1>
         <p>Please wait</p>
+      </div>
+
+      <div id="skins-screen" class="screen hidden">
+        <h1>Ball Skins</h1>
+        <div id="skins-grid"></div>
+        <button id="skins-close-btn">Close</button>
+      </div>
+
+      <div id="spin-result-screen" class="screen hidden">
+        <h1>You Won!</h1>
+        <p><span id="spin-reward">0</span> coins</p>
+        <button id="spin-close-btn">Nice!</button>
       </div>
     </div>
 

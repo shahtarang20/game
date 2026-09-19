@@ -7,9 +7,18 @@
   const startScreen = document.getElementById('start-screen');
   const gameoverScreen = document.getElementById('gameover-screen');
   const adWatchingScreen = document.getElementById('ad-watching-screen');
+  const skinsScreen = document.getElementById('skins-screen');
+  const spinResultScreen = document.getElementById('spin-result-screen');
   const startBtn = document.getElementById('start-btn');
   const restartBtn = document.getElementById('restart-btn');
   const continueBtn = document.getElementById('continue-btn');
+  const doubleCoinsBtn = document.getElementById('double-coins-btn');
+  const spinBtn = document.getElementById('spin-btn');
+  const skinsBtn = document.getElementById('skins-btn');
+  const skinsCloseBtn = document.getElementById('skins-close-btn');
+  const spinCloseBtn = document.getElementById('spin-close-btn');
+  const skinsGrid = document.getElementById('skins-grid');
+  const spinRewardEl = document.getElementById('spin-reward');
   const finalScoreEl = document.getElementById('final-score');
   const finalLevelEl = document.getElementById('final-level');
   const finalCoinsEl = document.getElementById('final-coins');
@@ -22,6 +31,18 @@
   const COIN_TOTAL_KEY = 'flappyLevelsCoins';
   const LAST_PLAYED_KEY = 'flappyLevelsLastPlayed';
   const STREAK_KEY = 'flappyLevelsStreak';
+  const LAST_SPIN_KEY = 'flappyLevelsLastSpin';
+  const UNLOCKED_SKINS_KEY = 'flappyLevelsUnlockedSkins';
+  const SELECTED_SKIN_KEY = 'flappyLevelsSelectedSkin';
+
+  const SKINS = [
+    { id: 'default', label: 'Default', color: null },
+    { id: 'crimson', label: 'Crimson', color: '#e53935' },
+    { id: 'emerald', label: 'Emerald', color: '#43a047' },
+    { id: 'gold',    label: 'Gold',    color: '#fbc02d' },
+    { id: 'violet',  label: 'Violet',  color: '#8e24aa' },
+    { id: 'ice',     label: 'Ice',     color: '#4dd0e1' },
+  ];
 
   const PIPES_PER_LEVEL = 10;
 
@@ -47,7 +68,7 @@
 
   let bird, pipes, coins, powerups, particles, stars;
   let frame, score, pipesPassed, level, gameState, groundOffset;
-  let coinsThisRun, activeEffects, shieldHit, usedContinue;
+  let coinsThisRun, activeEffects, shieldHit, usedContinue, usedDoubleCoins;
   let shakeTime, shakeMag, ballSpin;
   let dpr = 1;
 
@@ -84,6 +105,46 @@
     const bonus = 5 * streak;
     addCoins(bonus);
     return { streak, bonus, isNew: true };
+  }
+
+  function canDailySpin() {
+    return localStorage.getItem(LAST_SPIN_KEY) !== todayStr();
+  }
+  function markDailySpinUsed() {
+    localStorage.setItem(LAST_SPIN_KEY, todayStr());
+  }
+
+  function getUnlockedSkins() {
+    try {
+      return JSON.parse(localStorage.getItem(UNLOCKED_SKINS_KEY)) || ['default'];
+    } catch {
+      return ['default'];
+    }
+  }
+  function unlockSkin(id) {
+    const unlocked = getUnlockedSkins();
+    if (!unlocked.includes(id)) {
+      unlocked.push(id);
+      localStorage.setItem(UNLOCKED_SKINS_KEY, JSON.stringify(unlocked));
+    }
+  }
+  function getSelectedSkin() {
+    return localStorage.getItem(SELECTED_SKIN_KEY) || 'default';
+  }
+  function setSelectedSkin(id) {
+    localStorage.setItem(SELECTED_SKIN_KEY, id);
+  }
+
+  // ---------- generic "watch ad" flow ----------
+  // Shows the ad-watching placeholder screen, then invokes the reward callback.
+  // Real ad SDK integration point: replace the setTimeout with your ad network's
+  // "show interstitial/rewarded ad" call and invoke onReward from its completion callback.
+  function watchAd(onReward, delay = 1500) {
+    adWatchingScreen.classList.remove('hidden');
+    setTimeout(() => {
+      adWatchingScreen.classList.add('hidden');
+      onReward();
+    }, delay);
   }
 
   // ---------- audio (WebAudio, no external files) ----------
@@ -163,6 +224,7 @@
     activeEffects = {};
     shieldHit = false;
     usedContinue = false;
+    usedDoubleCoins = false;
     shakeTime = 0;
     shakeMag = 0;
     ballSpin = 0;
@@ -342,21 +404,91 @@
     finalCoinsEl.textContent = coinsThisRun;
     highScoreEndEl.textContent = best;
     continueBtn.classList.toggle('hidden', usedContinue);
+    doubleCoinsBtn.classList.toggle('hidden', usedDoubleCoins || coinsThisRun <= 0);
     gameoverScreen.classList.remove('hidden');
   }
 
   function continueAfterAd() {
     usedContinue = true;
     gameoverScreen.classList.add('hidden');
-    adWatchingScreen.classList.remove('hidden');
-    setTimeout(() => {
-      adWatchingScreen.classList.add('hidden');
+    watchAd(() => {
       bird.y = BASE_H / 2;
       bird.vy = 0;
       shieldHit = true;
       pipes = pipes.filter(p => p.x > bird.x + 150);
       gameState = 'playing';
-    }, 1500);
+    });
+  }
+
+  function doubleCoinsAfterAd() {
+    usedDoubleCoins = true;
+    doubleCoinsBtn.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    watchAd(() => {
+      addCoins(coinsThisRun);
+      coinsThisRun *= 2;
+      finalCoinsEl.textContent = coinsThisRun;
+      gameoverScreen.classList.remove('hidden');
+    });
+  }
+
+  function spinForBonus() {
+    if (!canDailySpin()) return;
+    startScreen.classList.add('hidden');
+    watchAd(() => {
+      markDailySpinUsed();
+      const reward = 10 + Math.floor(Math.random() * 41); // 10-50
+      addCoins(reward);
+      spinRewardEl.textContent = reward;
+      spinResultScreen.classList.remove('hidden');
+    });
+  }
+
+  function closeSpinResult() {
+    spinResultScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+    coinTotalStartEl.textContent = getCoinTotal();
+    spinBtn.classList.add('hidden');
+  }
+
+  function renderSkinsGrid() {
+    const unlocked = getUnlockedSkins();
+    const selected = getSelectedSkin();
+    skinsGrid.innerHTML = '';
+    for (const skin of SKINS) {
+      const isUnlocked = skin.id === 'default' || unlocked.includes(skin.id);
+      const item = document.createElement('div');
+      item.className = 'skin-item' + (skin.id === selected ? ' selected' : '');
+      const swatch = document.createElement('div');
+      swatch.className = 'skin-swatch';
+      swatch.style.background = skin.color || '#ffeb3b';
+      const label = document.createElement('div');
+      label.className = 'skin-label';
+      label.textContent = skin.label;
+      item.appendChild(swatch);
+      item.appendChild(label);
+      if (!isUnlocked) {
+        const lock = document.createElement('div');
+        lock.className = 'skin-lock';
+        lock.textContent = 'Watch ad to unlock';
+        item.appendChild(lock);
+        item.addEventListener('click', () => {
+          skinsScreen.classList.add('hidden');
+          watchAd(() => {
+            unlockSkin(skin.id);
+            setSelectedSkin(skin.id);
+            skinsScreen.classList.remove('hidden');
+            renderSkinsGrid();
+          });
+        });
+      } else {
+        item.addEventListener('click', () => {
+          setSelectedSkin(skin.id);
+          renderSkinsGrid();
+        });
+      }
+      skinsGrid.appendChild(item);
+    }
   }
 
   // ---------- drawing ----------
@@ -474,10 +606,14 @@
       ctx.stroke();
     }
 
+    const skinId = getSelectedSkin();
+    const skin = SKINS.find(s => s.id === skinId);
+    const ballColor = (skin && skin.color) || theme.bird;
+
     const grad = ctx.createRadialGradient(-bird.r * 0.35, -bird.r * 0.35, 1, 0, 0, bird.r);
     grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.35, theme.bird);
-    grad.addColorStop(1, shadeColor(theme.bird, -30));
+    grad.addColorStop(0.35, ballColor);
+    grad.addColorStop(1, shadeColor(ballColor, -30));
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(0, 0, bird.r, 0, Math.PI * 2);
@@ -574,9 +710,22 @@
   startBtn.addEventListener('click', startGame);
   restartBtn.addEventListener('click', startGame);
   continueBtn.addEventListener('click', continueAfterAd);
+  doubleCoinsBtn.addEventListener('click', doubleCoinsAfterAd);
+  spinBtn.addEventListener('click', spinForBonus);
+  spinCloseBtn.addEventListener('click', closeSpinResult);
+  skinsBtn.addEventListener('click', () => {
+    renderSkinsGrid();
+    startScreen.classList.add('hidden');
+    skinsScreen.classList.remove('hidden');
+  });
+  skinsCloseBtn.addEventListener('click', () => {
+    skinsScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  });
 
   highScoreStartEl.textContent = getHighScore();
   coinTotalStartEl.textContent = getCoinTotal();
+  spinBtn.classList.toggle('hidden', !canDailySpin());
 
   const streakInfo = checkDailyStreak();
   if (streakInfo.isNew) {
