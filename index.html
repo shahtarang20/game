@@ -24,9 +24,14 @@
         <div class="btn-row">
           <button id="spin-btn" class="secondary-btn">Watch Ad: Daily Spin</button>
           <button id="skins-btn" class="secondary-btn">Skins</button>
+          <button id="achievements-btn" class="secondary-btn">Achievements</button>
         </div>
         <p class="high-score">Best: <span id="high-score-start">0</span></p>
         <p class="coin-total">Coins: <span id="coin-total-start">0</span></p>
+        <div class="progress-wrap">
+          <div class="progress-label">Next milestone: <span id="progress-label-text">0 / 100</span></div>
+          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        </div>
         <p id="streak-banner" class="streak-banner hidden"></p>
       </div>
 
@@ -35,7 +40,9 @@
         <p>Score: <span id="final-score">0</span></p>
         <p>Level reached: <span id="final-level">1</span></p>
         <p>Coins collected: <span id="final-coins">0</span></p>
+        <p>Best combo: <span id="final-combo">0</span>x</p>
         <p class="high-score">Best: <span id="high-score-end">0</span></p>
+        <div id="achievement-toast" class="achievement-toast hidden"></div>
         <button id="continue-btn" class="hidden">Watch Ad to Continue</button>
         <button id="double-coins-btn" class="secondary-btn hidden">Watch Ad to Double Coins</button>
         <button id="restart-btn">Play Again</button>
@@ -51,6 +58,12 @@
         <h1>Ball Skins</h1>
         <div id="skins-grid"></div>
         <button id="skins-close-btn">Close</button>
+      </div>
+
+      <div id="achievements-screen" class="screen hidden">
+        <h1>Achievements</h1>
+        <div id="achievements-list"></div>
+        <button id="achievements-close-btn">Close</button>
       </div>
 
       <div id="spin-result-screen" class="screen hidden">

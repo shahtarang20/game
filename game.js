@@ -8,6 +8,7 @@
   const gameoverScreen = document.getElementById('gameover-screen');
   const adWatchingScreen = document.getElementById('ad-watching-screen');
   const skinsScreen = document.getElementById('skins-screen');
+  const achievementsScreen = document.getElementById('achievements-screen');
   const spinResultScreen = document.getElementById('spin-result-screen');
   const startBtn = document.getElementById('start-btn');
   const restartBtn = document.getElementById('restart-btn');
@@ -16,16 +17,23 @@
   const spinBtn = document.getElementById('spin-btn');
   const skinsBtn = document.getElementById('skins-btn');
   const skinsCloseBtn = document.getElementById('skins-close-btn');
+  const achievementsBtn = document.getElementById('achievements-btn');
+  const achievementsCloseBtn = document.getElementById('achievements-close-btn');
+  const achievementsList = document.getElementById('achievements-list');
+  const achievementToast = document.getElementById('achievement-toast');
   const spinCloseBtn = document.getElementById('spin-close-btn');
   const skinsGrid = document.getElementById('skins-grid');
   const spinRewardEl = document.getElementById('spin-reward');
   const finalScoreEl = document.getElementById('final-score');
   const finalLevelEl = document.getElementById('final-level');
   const finalCoinsEl = document.getElementById('final-coins');
+  const finalComboEl = document.getElementById('final-combo');
   const highScoreStartEl = document.getElementById('high-score-start');
   const highScoreEndEl = document.getElementById('high-score-end');
   const coinTotalStartEl = document.getElementById('coin-total-start');
   const streakBannerEl = document.getElementById('streak-banner');
+  const progressFillEl = document.getElementById('progress-fill');
+  const progressLabelEl = document.getElementById('progress-label-text');
 
   const HIGH_SCORE_KEY = 'flappyLevelsHighScore';
   const COIN_TOTAL_KEY = 'flappyLevelsCoins';
@@ -34,6 +42,19 @@
   const LAST_SPIN_KEY = 'flappyLevelsLastSpin';
   const UNLOCKED_SKINS_KEY = 'flappyLevelsUnlockedSkins';
   const SELECTED_SKIN_KEY = 'flappyLevelsSelectedSkin';
+  const LIFETIME_KEY = 'flappyLevelsLifetimeStats';
+  const UNLOCKED_ACHIEVEMENTS_KEY = 'flappyLevelsAchievements';
+
+  const ACHIEVEMENTS = [
+    { id: 'first_flight', label: 'First Flight',   desc: 'Play your first game',        reward: 5,  check: (s) => s.plays >= 1 },
+    { id: 'pipe_50',      label: 'Getting Warmed Up', desc: 'Pass 50 pipes lifetime',    reward: 20, check: (s) => s.pipes >= 50 },
+    { id: 'pipe_200',     label: 'Pipe Veteran',   desc: 'Pass 200 pipes lifetime',      reward: 50, check: (s) => s.pipes >= 200 },
+    { id: 'coin_100',     label: 'Coin Collector', desc: 'Reach 100 total coins',        reward: 15, check: (s) => getCoinTotal() >= 100 },
+    { id: 'coin_500',     label: 'Coin Hoarder',   desc: 'Reach 500 total coins',        reward: 40, check: (s) => getCoinTotal() >= 500 },
+    { id: 'theme_4',      label: 'Space Explorer', desc: 'Reach the Space level',        reward: 25, check: (s) => s.maxTheme >= 4 },
+    { id: 'theme_8',      label: 'Volcano Survivor', desc: 'Reach the Volcano level',    reward: 60, check: (s) => s.maxTheme >= 8 },
+    { id: 'combo_10',     label: 'Combo Master',   desc: 'Reach a x10 combo in one run', reward: 30, check: (s) => s.bestComboThisRun >= 10 },
+  ];
 
   const SKINS = [
     { id: 'default', label: 'Default', color: null },
@@ -70,6 +91,7 @@
   let frame, score, pipesPassed, level, gameState, groundOffset;
   let coinsThisRun, activeEffects, shieldHit, usedContinue, usedDoubleCoins;
   let shakeTime, shakeMag, ballSpin;
+  let comboCount, comboMultiplier, bestComboThisRun, slowFramesRemaining;
   let dpr = 1;
 
   function shadeColor(hex, percent) {
@@ -135,6 +157,39 @@
     localStorage.setItem(SELECTED_SKIN_KEY, id);
   }
 
+  function getLifetimeStats() {
+    try {
+      return Object.assign({ pipes: 0, plays: 0, maxTheme: 0, bestComboThisRun: 0 }, JSON.parse(localStorage.getItem(LIFETIME_KEY)));
+    } catch {
+      return { pipes: 0, plays: 0, maxTheme: 0, bestComboThisRun: 0 };
+    }
+  }
+  function saveLifetimeStats(stats) {
+    localStorage.setItem(LIFETIME_KEY, JSON.stringify(stats));
+  }
+  function getUnlockedAchievements() {
+    try {
+      return JSON.parse(localStorage.getItem(UNLOCKED_ACHIEVEMENTS_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+  function checkNewAchievements(stats) {
+    const unlocked = getUnlockedAchievements();
+    const newlyUnlocked = [];
+    for (const a of ACHIEVEMENTS) {
+      if (!unlocked.includes(a.id) && a.check(stats)) {
+        unlocked.push(a.id);
+        addCoins(a.reward);
+        newlyUnlocked.push(a);
+      }
+    }
+    if (newlyUnlocked.length) {
+      localStorage.setItem(UNLOCKED_ACHIEVEMENTS_KEY, JSON.stringify(unlocked));
+    }
+    return newlyUnlocked;
+  }
+
   // ---------- generic "watch ad" flow ----------
   // Shows the ad-watching placeholder screen, then invokes the reward callback.
   // Real ad SDK integration point: replace the setTimeout with your ad network's
@@ -177,6 +232,9 @@
     powerup: () => beep(660, 0.2, 'triangle', 0.15),
     hit: () => beep(120, 0.3, 'sawtooth', 0.2),
     levelup: () => { beep(500, 0.15, 'sine', 0.12); setTimeout(() => beep(700, 0.15, 'sine', 0.12), 120); },
+    nearMiss: () => beep(1500, 0.06, 'sine', 0.08),
+    comboBreak: () => beep(200, 0.15, 'triangle', 0.1),
+    achievement: () => { beep(700, 0.1, 'sine', 0.12); setTimeout(() => beep(1000, 0.15, 'sine', 0.14), 100); },
   };
 
   // ---------- responsive canvas ----------
@@ -228,6 +286,10 @@
     shakeTime = 0;
     shakeMag = 0;
     ballSpin = 0;
+    comboCount = 0;
+    comboMultiplier = 1;
+    bestComboThisRun = 0;
+    slowFramesRemaining = 0;
     gameState = 'ready';
   }
 
@@ -263,7 +325,7 @@
     const gap = BASE_GAP * theme.gapMul;
     const margin = 60;
     const topHeight = margin + Math.random() * (BASE_H - 2 * margin - gap - 100);
-    pipes.push({ x: BASE_W + PIPE_WIDTH, topHeight, gap, passed: false });
+    pipes.push({ x: BASE_W + PIPE_WIDTH, topHeight, gap, passed: false, nearMissChecked: false });
 
     const midY = topHeight + gap / 2;
     if (Math.random() < 0.5) {
@@ -295,13 +357,24 @@
     }
   }
 
+  const NEAR_MISS_MARGIN = 10;
+
+  function resetCombo() {
+    if (comboCount >= 3) sfx.comboBreak();
+    comboCount = 0;
+    comboMultiplier = 1;
+  }
+
   function update() {
     if (gameState !== 'playing') return;
 
-    bird.vy += GRAVITY;
-    bird.y += bird.vy;
+    const ts = slowFramesRemaining > 0 ? 0.4 : 1;
+    if (slowFramesRemaining > 0) slowFramesRemaining--;
 
-    const speed = pipeSpeed();
+    bird.vy += GRAVITY * ts;
+    bird.y += bird.vy * ts;
+
+    const speed = pipeSpeed() * ts;
     groundOffset = (groundOffset - speed) % 40;
 
     if (frame % Math.max(40, Math.round(PIPE_INTERVAL / currentTheme().speedMul)) === 0) {
@@ -312,8 +385,8 @@
       p.x -= speed;
       if (!p.passed && p.x + PIPE_WIDTH < bird.x) {
         p.passed = true;
-        const gained = activeEffects.x2 ? 2 : 1;
-        score += gained;
+        const gained = (activeEffects.x2 ? 2 : 1) * comboMultiplier;
+        score += Math.round(gained);
         pipesPassed++;
         sfx.score();
         if (pipesPassed % PIPES_PER_LEVEL === 0) {
@@ -329,9 +402,14 @@
       c.x -= speed;
       if (!c.collected && dist(bird, c) < bird.r + c.r) {
         c.collected = true;
-        coinsThisRun++;
+        comboCount++;
+        bestComboThisRun = Math.max(bestComboThisRun, comboCount);
+        comboMultiplier = Math.min(1 + Math.floor(comboCount / 3) * 0.5, 4);
+        coinsThisRun += Math.round(comboMultiplier);
         sfx.coin();
         spawnParticles(c.x, c.y, 6, '#ffd700');
+      } else if (!c.collected && c.x <= -30) {
+        resetCombo();
       }
     }
     coins = coins.filter(c => c.x > -30 && !c.collected);
@@ -357,6 +435,7 @@
     if (shakeTime > 0) shakeTime--;
 
     if (bird.y + bird.r > BASE_H - 40 || bird.y - bird.r < 0) {
+      resetCombo();
       handleHit();
       return;
     }
@@ -366,13 +445,30 @@
         const withinGapTop = bird.y - bird.r < p.topHeight;
         const withinGapBottom = bird.y + bird.r > p.topHeight + p.gap;
         if (withinGapTop || withinGapBottom) {
+          resetCombo();
           handleHit();
           return;
+        }
+        if (!p.nearMissChecked) {
+          const distTop = (bird.y - bird.r) - p.topHeight;
+          const distBottom = (p.topHeight + p.gap) - (bird.y + bird.r);
+          if (distTop < NEAR_MISS_MARGIN || distBottom < NEAR_MISS_MARGIN) {
+            p.nearMissChecked = true;
+            triggerNearMiss();
+          }
         }
       }
     }
 
     frame++;
+  }
+
+  function triggerNearMiss() {
+    sfx.nearMiss();
+    triggerShake(1.5, 6);
+    spawnParticles(bird.x, bird.y, 5, '#ffffff');
+    slowFramesRemaining = 10;
+    if (navigator.vibrate) navigator.vibrate(15);
   }
 
   function dist(a, b) {
@@ -399,13 +495,31 @@
     const best = Math.max(getHighScore(), score);
     setHighScore(best);
     addCoins(coinsThisRun);
+
+    const lifetime = getLifetimeStats();
+    lifetime.pipes += pipesPassed;
+    lifetime.plays += 1;
+    lifetime.maxTheme = Math.max(lifetime.maxTheme, level + 1);
+    lifetime.bestComboThisRun = bestComboThisRun;
+    saveLifetimeStats(lifetime);
+
     finalScoreEl.textContent = score;
     finalLevelEl.textContent = level + 1;
     finalCoinsEl.textContent = coinsThisRun;
+    finalComboEl.textContent = bestComboThisRun;
     highScoreEndEl.textContent = best;
     continueBtn.classList.toggle('hidden', usedContinue);
     doubleCoinsBtn.classList.toggle('hidden', usedDoubleCoins || coinsThisRun <= 0);
     gameoverScreen.classList.remove('hidden');
+
+    const newlyUnlocked = checkNewAchievements(lifetime);
+    if (newlyUnlocked.length) {
+      sfx.achievement();
+      achievementToast.textContent = `Achievement unlocked: ${newlyUnlocked.map(a => a.label).join(', ')}!`;
+      achievementToast.classList.remove('hidden');
+    } else {
+      achievementToast.classList.add('hidden');
+    }
   }
 
   function continueAfterAd() {
@@ -448,6 +562,7 @@
     spinResultScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
     coinTotalStartEl.textContent = getCoinTotal();
+    updateProgressBar();
     spinBtn.classList.add('hidden');
   }
 
@@ -489,6 +604,34 @@
       }
       skinsGrid.appendChild(item);
     }
+  }
+
+  function renderAchievementsList() {
+    const unlocked = getUnlockedAchievements();
+    achievementsList.innerHTML = '';
+    for (const a of ACHIEVEMENTS) {
+      const isUnlocked = unlocked.includes(a.id);
+      const item = document.createElement('div');
+      item.className = 'achievement-item' + (isUnlocked ? ' unlocked' : '');
+      item.innerHTML = `
+        <div>
+          <div class="achievement-name">${isUnlocked ? '✓ ' : '\u{1F512} '}${a.label}</div>
+          <div class="achievement-desc">${a.desc}</div>
+        </div>
+        <div class="achievement-reward">+${a.reward}</div>
+      `;
+      achievementsList.appendChild(item);
+    }
+  }
+
+  const PROGRESS_STEP = 100;
+  function updateProgressBar() {
+    const coins = getCoinTotal();
+    const nextMilestone = (Math.floor(coins / PROGRESS_STEP) + 1) * PROGRESS_STEP;
+    const prevMilestone = nextMilestone - PROGRESS_STEP;
+    const pct = ((coins - prevMilestone) / PROGRESS_STEP) * 100;
+    progressFillEl.style.width = pct + '%';
+    progressLabelEl.textContent = `${coins} / ${nextMilestone}`;
   }
 
   // ---------- drawing ----------
@@ -659,6 +802,15 @@
       ctx.fillText(`${label} ${Math.ceil(activeEffects[key] / 60)}s`, 12, effectY);
       effectY += 16;
     }
+
+    if (comboCount >= 3) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 20px Arial';
+      ctx.fillStyle = '#ff9800';
+      const comboText = `COMBO x${comboMultiplier.toFixed(1)}`;
+      ctx.strokeText(comboText, BASE_W / 2, BASE_H - 60);
+      ctx.fillText(comboText, BASE_W / 2, BASE_H - 60);
+    }
   }
 
   function draw() {
@@ -722,16 +874,27 @@
     skinsScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
   });
+  achievementsBtn.addEventListener('click', () => {
+    renderAchievementsList();
+    startScreen.classList.add('hidden');
+    achievementsScreen.classList.remove('hidden');
+  });
+  achievementsCloseBtn.addEventListener('click', () => {
+    achievementsScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  });
 
   highScoreStartEl.textContent = getHighScore();
   coinTotalStartEl.textContent = getCoinTotal();
   spinBtn.classList.toggle('hidden', !canDailySpin());
+  updateProgressBar();
 
   const streakInfo = checkDailyStreak();
   if (streakInfo.isNew) {
     streakBannerEl.textContent = `Daily streak: ${streakInfo.streak} day${streakInfo.streak > 1 ? 's' : ''}! +${streakInfo.bonus} coins`;
     streakBannerEl.classList.remove('hidden');
     coinTotalStartEl.textContent = getCoinTotal();
+    updateProgressBar();
   }
 
   resizeCanvas();
