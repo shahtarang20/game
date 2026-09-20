@@ -239,19 +239,15 @@
 
   // ---------- responsive canvas ----------
   const gameWrap = document.getElementById('game-wrap');
-  const adTop = document.getElementById('ad-slot-top');
-  const adBottom = document.getElementById('ad-slot-bottom');
 
   function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
 
     const wrapStyle = getComputedStyle(gameWrap);
-    const gap = parseFloat(wrapStyle.rowGap || wrapStyle.gap || '0') || 0;
     const paddingV = parseFloat(wrapStyle.paddingTop) + parseFloat(wrapStyle.paddingBottom);
     const paddingH = parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight);
 
-    const reservedHeight = adTop.offsetHeight + adBottom.offsetHeight + gap * 2 + paddingV;
-    const availableHeight = window.innerHeight - reservedHeight;
+    const availableHeight = window.innerHeight - paddingV;
     const availableWidth = window.innerWidth - paddingH;
 
     const scale = Math.max(0.3, Math.min(availableWidth / BASE_W, availableHeight / BASE_H, 1.4));

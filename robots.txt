@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://game-roan-mu.vercel.app/sitemap.xml

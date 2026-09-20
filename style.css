@@ -5,12 +5,11 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100%;
   background: #111;
   font-family: 'Segoe UI', Arial, sans-serif;
-  overflow: hidden;
-  overscroll-behavior: none;
-  touch-action: none;
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -39,8 +38,29 @@ canvas {
   min-height: 0;
 }
 
-.ad-slot {
-  flex-shrink: 0;
+#seo-content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  color: #bbb;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+#seo-content h1 {
+  font-size: 20px;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+#seo-content h2 {
+  font-size: 15px;
+  color: #ffd54f;
+  margin: 20px 0 6px;
+}
+
+#seo-content p {
+  margin: 0 0 10px;
 }
 
 #game-wrap {
@@ -73,7 +93,7 @@ canvas {
   display: none;
 }
 
-.screen h1 {
+.screen h1, .screen h2 {
   margin: 0 0 8px;
   font-size: 28px;
 }
@@ -282,37 +302,11 @@ button:hover, button:active {
   background: #ffca28;
 }
 
-.ad-slot {
-  width: 100%;
-  max-width: 480px;
-  min-height: 50px;
-  background: #222;
-  color: #777;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  border-radius: 6px;
-  border: 1px dashed #444;
-}
-
-#ad-slot-interstitial {
-  margin-top: 12px;
-  min-height: 90px;
-}
-
 @media (max-height: 700px) {
-  .ad-slot {
-    min-height: 32px;
-    font-size: 10px;
-  }
-  #ad-slot-interstitial {
-    min-height: 50px;
-  }
   .screen {
     padding: 16px 20px;
   }
-  .screen h1 {
+  .screen h1, .screen h2 {
     font-size: 22px;
   }
   .screen p {

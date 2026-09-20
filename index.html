@@ -3,20 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Flappy Levels</title>
+<title>Flappy Levels &mdash; Free Endless Flappy Bird Style Game</title>
+<meta name="description" content="Play Flappy Levels free in your browser: a fast, addictive Flappy Bird style flying game with endless themed levels, power-ups, coins, and achievements. No download required.">
+<meta name="keywords" content="flappy bird game, flappy levels, free flying game, browser game, endless arcade game, tap to fly game">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://game-roan-mu.vercel.app/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Flappy Levels — Free Endless Flappy Bird Style Game">
+<meta property="og:description" content="A fast, addictive Flappy Bird style flying game with endless themed levels, power-ups, coins, and achievements. Play free in your browser.">
+<meta property="og:url" content="https://game-roan-mu.vercel.app/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flappy Levels — Free Endless Flappy Bird Style Game">
+<meta name="twitter:description" content="A fast, addictive Flappy Bird style flying game with endless themed levels, power-ups, coins, and achievements.">
+
 <link rel="stylesheet" href="style.css">
 <meta name="google-adsense-account" content="ca-pub-5841910105267784">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5841910105267784" crossorigin="anonymous"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Flappy Levels",
+  "description": "A fast, addictive Flappy Bird style flying game with endless themed levels, power-ups, coins, and achievements.",
+  "genre": "Arcade",
+  "gamePlatform": "Web Browser",
+  "applicationCategory": "Game",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
 </head>
 <body>
   <div id="game-wrap">
-    <div id="ad-slot-top" class="ad-slot">Ad slot (top banner)</div>
-
     <canvas id="game" width="480" height="640"></canvas>
 
     <div id="overlay">
       <div id="start-screen" class="screen">
-        <h1>Flappy Levels</h1>
+        <h2>Flappy Levels</h2>
         <p>Tap / Click / Space to flap.</p>
         <p>Survive and cycle through endless themed levels.</p>
         <p>Grab <span class="coin-label">coins</span> and power-ups along the way.</p>
@@ -36,7 +63,7 @@
       </div>
 
       <div id="gameover-screen" class="screen hidden">
-        <h1>Game Over</h1>
+        <h2>Game Over</h2>
         <p>Score: <span id="final-score">0</span></p>
         <p>Level reached: <span id="final-level">1</span></p>
         <p>Coins collected: <span id="final-coins">0</span></p>
@@ -46,35 +73,63 @@
         <button id="continue-btn" class="hidden">Watch Ad to Continue</button>
         <button id="double-coins-btn" class="secondary-btn hidden">Watch Ad to Double Coins</button>
         <button id="restart-btn">Play Again</button>
-        <div id="ad-slot-interstitial" class="ad-slot">Ad slot (interstitial)</div>
       </div>
 
       <div id="ad-watching-screen" class="screen hidden">
-        <h1>Loading Ad&hellip;</h1>
+        <h2>Loading Ad&hellip;</h2>
         <p>Please wait</p>
       </div>
 
       <div id="skins-screen" class="screen hidden">
-        <h1>Ball Skins</h1>
+        <h2>Ball Skins</h2>
         <div id="skins-grid"></div>
         <button id="skins-close-btn">Close</button>
       </div>
 
       <div id="achievements-screen" class="screen hidden">
-        <h1>Achievements</h1>
+        <h2>Achievements</h2>
         <div id="achievements-list"></div>
         <button id="achievements-close-btn">Close</button>
       </div>
 
       <div id="spin-result-screen" class="screen hidden">
-        <h1>You Won!</h1>
+        <h2>You Won!</h2>
         <p><span id="spin-reward">0</span> coins</p>
         <button id="spin-close-btn">Nice!</button>
       </div>
     </div>
-
-    <div id="ad-slot-bottom" class="ad-slot">Ad slot (bottom banner)</div>
   </div>
+
+  <section id="seo-content">
+    <h1>Flappy Levels: Free Endless Flappy Bird Style Game</h1>
+    <p>
+      Flappy Levels is a free browser-based flying game inspired by classic Flappy Bird gameplay.
+      Tap, click, or press space to flap and guide your ball through an endless series of pipes.
+      No download, no install, no sign-up &mdash; just open the page and play instantly on desktop or mobile.
+    </p>
+    <h2>How to Play</h2>
+    <p>
+      Tap the screen, click, or press the spacebar to flap upward. Gravity pulls you down between flaps,
+      so time your taps to glide safely through each gap. Every pipe you clear adds to your score,
+      and the game never ends &mdash; survive as long as you can for a new high score.
+    </p>
+    <h2>Endless Themed Levels</h2>
+    <p>
+      Every 10 pipes you pass, Flappy Levels shifts into a new visual theme &mdash; Day, Sunset, Night,
+      Space, Underwater, Desert, Cyberpunk, and Volcano &mdash; each with its own obstacle style and
+      difficulty, then cycles endlessly so there's always a new look ahead.
+    </p>
+    <h2>Coins, Power-ups, and Achievements</h2>
+    <p>
+      Collect coins for a persistent total, grab power-ups like shields, slow-motion, and score
+      multipliers, build combo streaks for bonus points, unlock ball skins, and complete achievements
+      as you play. Come back daily for a bonus coin spin and streak rewards.
+    </p>
+    <p>
+      Flappy Levels works great on phones, tablets, and desktop browsers &mdash; play free anytime,
+      anywhere.
+    </p>
+  </section>
 
 <script src="game.js"></script>
 </body>
